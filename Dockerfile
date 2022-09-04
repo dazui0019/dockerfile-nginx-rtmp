@@ -30,6 +30,7 @@ RUN set -x \
     && ./configure --add-module=../nginx-rtmp-module/ \
     && make \
     && make install \
+    && ln -s /usr/local/nginx/sbin/nginx /usr/local/sbin/nginx \
 # 清理空间
     && mv /etc/apt/sources.list.back /etc/apt/sources.list \
     && apt-get remove gcc make git wget --purge --auto-remove -y && rm -rf /var/lib/apt/lists/* \
