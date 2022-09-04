@@ -5,11 +5,11 @@ ARCH=`arch`
 if [ ${ARCH} == "aarch64" ]
 then
     mv /etc/apt/sources.list /etc/apt/sources.list.back
-    cp ./replace/arm-sources.list /etc/apt/sources.list
+    cp displace/arm-sources.list /etc/apt/sources.list
 elif [ ${ARCH} == "x86_64" ]
 then
     mv /etc/apt/sources.list /etc/apt/sources.list.back
-    cp ./replace/x86_64-sources.list /etc/apt/sources.list
+    cp displace/x86_64-sources.list /etc/apt/sources.list
 else
     echo ${ARCH}
 fi

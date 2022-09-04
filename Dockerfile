@@ -9,28 +9,31 @@ WORKDIR /tmp/
 # 复制文件到容器
 # 保留原来的目录结构
 COPY html/ /tmp/html/
-COPY replace/ /tmp/replace/
-COPY nginx-rtmp-module/ /tmp/nginx/nginx-rtmp-module/
-COPY nginx-1.22.0.tar.gz /tmp/nginx/nginx-1.22.0.tar.gz
+COPY displace/ /tmp/displace/
 
-# 配置 sources.list
-RUN \
-    apt update \
-    && apt install -y apt-transport-https ca-certificates \
-    && chmod +x replace/replace.sh \
-    && replace/replace.sh \
-    && apt update
+EXPOSE 80
 
-# 安装依赖
-RUN apt install -y \
-    libpcre3 libpcre3-dev zlib1g-dev tar openssl libssl-dev autotools-dev autoconf build-essential git
-
+RUN set -x \
+# 换源以及安装依赖
+    && chmod +x displace/displace.sh \
+    && displace/displace.sh \
+    && apt update \
+    && buildDeps='libpcre3 libpcre3-dev zlib1g-dev tar openssl libssl-dev gcc make git wget' \
+    && apt install -y ${buildDeps}\
 # 编译nginx
-RUN \
-    cd nginx/ \
+    && mkdir nginx/ \
+    && cd nginx/ \
+    && git clone https://github.com/arut/nginx-rtmp-module.git \
+    && wget https://nginx.org/download/nginx-1.22.0.tar.gz -O nginx-1.22.0.tar.gz \
     && tar -xaf nginx-1.22.0.tar.gz \
     && cd nginx-1.22.0/ \
     && ./configure --add-module=../nginx-rtmp-module/ \
     && make \
     && make install \
-    && cd /tmp/
+# 清理空间
+    && mv /etc/apt/sources.list.back /etc/apt/sources.list \
+    && apt-get remove gcc make git wget --purge --auto-remove -y && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/*
+
+STOPSIGNAL SIGQUIT
+CMD ["nginx", "-g", "daemon off;"]
